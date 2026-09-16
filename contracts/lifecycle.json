@@ -1,0 +1,19 @@
+{
+  "schemaVersion":"1.0",
+  "stages":[
+    {"id":"first_pages","label":"First Pages","minAge":0,"maxAge":5},
+    {"id":"wonder","label":"Wonder","minAge":6,"maxAge":9},
+    {"id":"bloom","label":"Bloom","minAge":10,"maxAge":12},
+    {"id":"aura","label":"Aura","minAge":13,"maxAge":15},
+    {"id":"horizon","label":"Horizon","minAge":16,"maxAge":18},
+    {"id":"rise","label":"Rise","minAge":19,"maxAge":24},
+    {"id":"momentum","label":"Momentum","minAge":25,"maxAge":35},
+    {"id":"rooted","label":"Rooted","minAge":36,"maxAge":49},
+    {"id":"flourish","label":"Flourish","minAge":50,"maxAge":64},
+    {"id":"evergreen","label":"Evergreen","minAge":65,"maxAge":null}
+  ],
+  "visualPolicy":{"themeChange":"opt_in","userOverride":true,"authoritySource":false,"unknownTheme":"neutral"},
+  "jurisdictions":{"IN":{"adultAge":18,"assuranceRequiredForConnectedAdultCapabilities":true,"unknownAgePolicy":"deny_restricted","childProcessingRequiresReleaseGate":"G3"}},
+  "serverAuthorityFields":["assurance_status","adult_status","relationship_state","consent_state","policy_version"],
+  "neverAuthorityFields":["theme","client_age","client_clock","user_metadata","payer_status"]
+}

@@ -1,0 +1,32 @@
+name: Product or implementation task
+description: Propose a bounded HerPages change with traceable requirements.
+title: "[Task] "
+body:
+  - type: markdown
+    attributes:
+      value: "Use synthetic examples only. Do not post personal data, secrets or security vulnerability details."
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem and evidence
+      description: Separate observation from hypothesis.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope, non-goals and task/requirement IDs
+    validations:
+      required: true
+  - type: textarea
+    id: trust
+    attributes:
+      label: Data classes, age boundaries and release gate
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance tests and dependencies
+    validations:
+      required: true
