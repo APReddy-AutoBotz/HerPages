@@ -4,6 +4,8 @@
 
 The useful baseline does not require a model: private capture, local search, routines, explicit-interest filtering and source-verified opportunity discovery work without cloud AI. The model cannot grant permissions, establish age/guardianship, decide legal obligations, diagnose, guarantee safety or automatically apply for a program.
 
+**Required companion specification:** [Input provenance and enforcement limits](INPUT_PROVENANCE_AND_LIMITS.md). The draft API is not permission to enable unrestricted private-text upload. Before G6, commands need reviewed subject/context provenance; known child context must be blocked even when the caller is an adult. Arbitrary pasted text cannot be perfectly classified by subject.
+
 ## Three processing modes
 
 | Mode | Input | Output | Release posture |
@@ -16,11 +18,11 @@ Do not silently fall back from on-device to cloud processing. If a local model i
 
 ## Request flow
 
-`choose purpose → select exact inputs → preview disclosure → fresh capability/consent check → minimize/redact → provider adapter → schema and safety checks → show answer with sources/limitations → store only if user chooses`.
+`choose purpose → resolve subject/context → select exact inputs → preview disclosure → fresh capability/consent check → minimize/redact → provider adapter → schema and safety checks → show answer with sources/limitations → store only if user chooses`.
 
 For cloud requests the API and provider may see selected plaintext. E2EE backup claims do not cover that processing. The UI names the provider and applicable retention. Training opt-out, `store:false`, zero-data-retention eligibility and endpoint-specific logs are different concepts; verify the actual contract and feature. [S12]
 
-Baseline child-personal cloud AI is blocked before input is forwarded. Do not turn a guardian checkbox into an unlimited exception. General reviewed parenting content is editorially prepared; a parent's request containing a child's intimate information is also child-data processing and subject to the same gate.
+Known child-personal cloud requests are blocked before forwarding. A guardian checkbox is not an unlimited exception. General reviewed parenting content is editorially prepared; a parent's request about a child's intimate records is child-data processing, not adult-only data merely because the parent submitted it. Free-form personal text remains gated due to uncertain provenance.
 
 ## Approved initial adult purposes
 
@@ -30,18 +32,18 @@ An opportunity answer references catalog IDs/source URLs and distinguishes eligi
 
 ## Architecture
 
-The AI gateway owns provider selection, policy checks, quotas, timeout, redaction and response validation. The model adapter receives no database service-role key, vault master key, arbitrary browser, user search directory or outbound messaging credential. Treat catalog documents and uploaded text as untrusted data. Instructions inside them cannot change policy or request extra data.
+The gateway owns provider selection, subject/policy checks, quotas, timeout, redaction and response validation. The model receives no database service-role key, vault master key, arbitrary browser, user directory or outbound messaging credential. Treat source documents as untrusted data. Instructions inside them cannot change policy or request extra data.
 
-Store prompt templates/version, model identifier, purpose, approximate usage and redacted outcome codes. Do not retain raw prompts/responses by default. A voluntary diagnostic disclosure is a separate consented workflow with retention and restricted access, never required to keep using the vault.
+Store template/version, model identifier, purpose, approximate usage and redacted outcome codes. Do not retain raw prompts/responses by default. Voluntary diagnostic disclosure is separate, consented and retention-limited, never required to keep using the vault.
 
 ## Safety boundaries
 
-Health, legal, financial and safeguarding topics receive bounded general information and appropriate qualified/official resources; no prescription, diagnosis, investment instruction or professional replacement. The assistant does not assess whether a girl is attractive, feminine, intelligent enough or destined for a career. It avoids shame, coercion and assumptions about family roles.
+Health, legal, financial and safeguarding topics receive bounded general information and appropriate qualified/official resources; no prescription, diagnosis, investment decision or professional replacement. Do not assess whether a girl is attractive, feminine, intelligent enough or destined for a career. Avoid shame, coercion and assumed family roles.
 
-Urgent danger prompts should present verified official help options without waiting for a lengthy generated answer. An LLM is not the emergency routing engine. Never create a false confirmation that authorities have been notified.
+Urgent danger prompts present verified official help without waiting for a long generated answer. The LLM is not the emergency routing engine. Never falsely confirm authorities were notified.
 
-## Reliability and cost
+## Reliability, evaluation and cost
 
-Use structured outputs with bounded lengths and allowed references. Rate-limit per account/purpose; reject oversized input; apply an explicit per-request token/cost ceiling. Retry only safe idempotent requests. Explain provider outage and preserve local operation. Do not sell 'unlimited AI' against unbounded upstream costs.
+Use structured outputs with bounded lengths and authorized references. Rate-limit per account/purpose; reject oversized input; enforce token/cost ceilings. Retry only safe idempotent requests. Explain provider outage and preserve local operation. No unbounded 'unlimited AI' promise.
 
-Release decisions use `EVALUATION_PLAN.md`, not a subjective demo. Any privacy exfiltration, minor gate bypass, fabricated emergency number or unsafe action is a blocking failure.
+Use the held-out and adversarial suite in `EVALUATION_PLAN.md`, testing gateway/UI as well as prompts. Any privacy exfiltration, known-minor gate bypass, fabricated emergency confirmation or unauthorized action blocks release. A classifier's imperfect detection of misdeclared text must remain an explicit residual risk, never hidden by a safety score.
