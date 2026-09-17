@@ -1,6 +1,6 @@
 # Source register
 
-**Research date:** 16 September 2026. Sources support specific background/legal/technical claims, not product-market validation or a production compliance certificate. Provider pages are first-party descriptions, not independent quality audits. Recheck current text, amendments and contracts at implementation/release.
+**Research date:** 16–17 September 2026. Sources support specific background/legal/technical claims, not product-market validation or a production compliance certificate. Provider pages are first-party descriptions, not independent quality audits. Recheck current text, amendments and contracts at implementation/release.
 
 | ID | Primary source and URL | What was used / limitation |
 |---|---|---|
@@ -29,8 +29,9 @@
 | S23 | [Android Developers — Age Signals](https://android-developers.googleblog.com/2026/07/google-play-age-signals-api-safer-experiences.html) | Possible assurance direction; not proof of guardianship/complete consent. Revalidate country/version scope. |
 | S24 | [Next.js App Router](https://nextjs.org/docs/app) | Framework reference; detailed page retrieval unavailable. Verify current API/version at implementation. |
 | S25 | [MeitY — Act commencement G.S.R.843(E)](https://www.meity.gov.in/static/uploads/2025/11/c56ceae6c383460ca69577428d36828b.pdf) | Official notification dated13 November2025. English page inspected; core duties phase in rather than all being operative in September2026. |
-| S26 | [Checkout v4.2.2 reference](https://api.github.com/repos/actions/checkout/git/ref/tags/v4.2.2) | Initial verified pin `11bd71901bbe5b1630ceea73d27597364c9af683`; superseded after CI runtime warning. |
-| S27 | [Checkout v6 reference](https://api.github.com/repos/actions/checkout/git/ref/tags/v6) | Verified current v6 ref resolved on2026-09-16 to immutable commit `d23441a48e516b6c34aea4fa41551a30e30af803`; final documentation CI pin. |
+| S26 | [Checkout v4.2.2 reference](https://api.github.com/repos/actions/checkout/git/ref/tags/v4.2.2) | Initial verified pin; superseded after CI runtime warning. |
+| S27 | [Checkout v6 reference](https://api.github.com/repos/actions/checkout/git/ref/tags/v6) | Verified v6 ref resolved on2026-09-16 to immutable commit `d23441a48e516b6c34aea4fa41551a30e30af803`; documentation/HP-002 CI pin. |
+| S28 | [setup-node v6 reference](https://api.github.com/repos/actions/setup-node/git/ref/tags/v6) | Verified on2026-09-17; immutable commit `249970729cb0ef3589644e2896645e5dc5ba9c38` used by HP-002 CI. |
 
 ## Evidence handling
 
