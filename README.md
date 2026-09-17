@@ -6,7 +6,7 @@
 
 HerPages is a proposed privacy-first growth, personal-journey and opportunity platform for girls and women. A parent can begin a daughter's story; she gains an age-appropriate voice and, at adulthood, independent control. Women can also join at any age, including 50+, 65+ and beyond, without needing a childhood history.
 
-> **Repository status: documentation and implementation contracts, not a working application.** No production service, encryption implementation, emergency integration, legal certification or customer validation is represented as complete. The documents define the intended product and the gates required to build and release it responsibly.
+> **Repository status:** HP-002 foundation implemented; native encryption/recovery (HP-003) is not yet implemented. No production service, emergency integration, legal certification or customer validation is represented as complete.
 
 **Owner:** Parameswar Reddy / APReddy-AutoBotz  
 **Architecture baseline:** 1.0 — 16 September 2026  
@@ -24,6 +24,23 @@ HerPages is a proposed privacy-first growth, personal-journey and opportunity pl
 | Starting implementation | [Roadmap](docs/06-delivery/ROADMAP.md), [Bolt playbook](docs/06-delivery/BOLT_BUILD_PLAYBOOK.md), [Codex handover](docs/06-delivery/CODEX_HANDOVER.md), [release gates](docs/06-delivery/RELEASE_GATES.md) |
 
 The [documentation index](docs/README.md) lists the full pack. [STATUS.md](docs/06-delivery/STATUS.md) distinguishes documented, implemented, tested and released work. [SOURCES.md](docs/07-reference/SOURCES.md) records primary-source research and verification limitations.
+
+## Current implementation state
+
+HP-002 establishes a pnpm monorepo with:
+
+```text
+apps/mobile/          React Native + Expo SDK 57 shell
+apps/web/             Next.js shell
+services/api/         Fastify API skeleton
+packages/contracts/   typed/validated contracts
+packages/design-tokens/
+packages/domain/
+packages/policy/
+packages/vault-port/  interfaces only; no crypto implementation yet
+```
+
+The HP-002 workspace was manually transferred once and accidentally nested under `/project/`; the repair branch flattens the source tree back to repository root and removes transfer-only artifacts. See [repository repair note](docs/06-delivery/REPOSITORY_REPAIR.md). Fresh GitHub/fresh-checkout verification is required before HP-003 starts.
 
 ## Product promise
 
@@ -47,12 +64,12 @@ Parents and authorized guardians of any gender can use guardian functions. Girls
 | 6–9 | Wonder | Curiosity and shared discovery |
 | 10–12 | Bloom | Interests, confidence and life skills |
 | 13–15 | Aura | Voice, exploration and digital awareness |
-| 16–18 | Horizon | Education, opportunity and increasing independence |
+| 16–18 | Horizon | Education, skills, opportunities, safety |
 | 19–24 | Rise | Learning, work and self-directed goals |
-| 25–35 | Momentum | Chosen goals, skills and community |
-| 36–49 | Rooted | Reinvention, leadership and connection |
-| 50–64 | Flourish | New interests, opportunity and mentoring |
-| 65+ | Evergreen | Purpose, connection, learning and chosen legacy |
+| 25–35 | Momentum | Career, money, life goals, wellbeing |
+| 36–49 | Rooted | Leadership, family, goals, balance |
+| 50–64 | Flourish | Reinvention, wellbeing, finance, mentoring |
+| 65+ | Evergreen | Community, purpose, experiences, legacy, mentoring |
 
 **A visual chapter never grants permission.** In the India baseline, the under-18 policy boundary is evaluated independently of the Horizon theme, which includes age 18. Theme changes are opt-in; accessibility settings are available at every age. A birthday never makes a profile public or grants another person access.
 
@@ -71,7 +88,7 @@ flowchart LR
     L -. no server plaintext access .-> B
 ```
 
-**Chosen direction:** React Native + Expo + TypeScript; SQLite/SQLCipher for the native vault; OS-backed secret storage; Next.js for web/partner/admin; a TypeScript modular monolith; PostgreSQL/Supabase; versioned API and JSON Schema contracts; GitHub as source of truth. Exact package versions are selected and locked only after native compatibility and security spikes pass.
+**Chosen direction:** React Native + Expo + TypeScript; SQLite/SQLCipher for the native vault; OS-backed secret storage; Next.js for web/partner/admin; a TypeScript modular monolith; PostgreSQL/Supabase; versioned API and JSON Schema contracts; GitHub as source of truth. Exact security implementation is selected only after HP-003 passes the native compatibility and recovery spike.
 
 The same database is not copied indiscriminately into the cloud. Local vault content, encrypted backups, service-private account data and intentionally published community content are different data classes with different access and retention rules.
 
@@ -89,17 +106,16 @@ The same database is not copied indiscriminately into the cloud. Local vault con
 
 **Bolt is temporary acceleration; GitHub is ownership; Codex is continuity.** The promotional period does not define product scope or justify bypassing security. Use synthetic data in builder environments. Prove the native vault and clean-room handover before depending on generated UI.
 
-The first executable target is a **native, offline, private-page vertical slice** with an adult test account and synthetic lifecycle fixtures. Next come backup/restore proof, curated opportunity discovery and a legally reviewed parent-led beta. Communities, live safety sessions and private-cloud AI remain separately gated.
+The next engineering step after fresh HP-002 verification is **HP-003 — native encryption/key/recovery feasibility spike**. Do not start HP-003 from a loose file copy or a web-only environment pretending to prove native security.
 
-## Validate this documentation
-
-Once this baseline is fully committed:
+## Validate documentation
 
 ```sh
 python3 scripts/validate_docs.py
+python3 -m unittest discover -s scripts -p 'test_*.py' -v
 ```
 
-The validator checks documentation links, JSON syntax, requirement/test/backlog traceability, lifecycle boundaries, design-token contrast pairs and contract references. It is **not** an application test suite or security audit. There is intentionally no pretend `pnpm dev` command before application scaffolding exists.
+Application checks, when dependencies are installed, are defined by the root workspace scripts. The documentation validator is **not** an application test suite, native security audit or legal review.
 
 ## Collaboration and security
 
