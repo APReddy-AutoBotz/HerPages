@@ -1,0 +1,17 @@
+{
+  "synthetic":true,
+  "note":"Fictional test contexts; no real birthdays, contacts, schools or identity documents.",
+  "personas":[
+    {"id":"demo-05","label":"DEMO child history","age":5,"stage":"first_pages","assurance":"minor","real_processing_allowed":false},
+    {"id":"demo-08","label":"DEMO shared activity","age":8,"stage":"wonder","assurance":"minor","real_processing_allowed":false},
+    {"id":"demo-12","label":"DEMO curiosity","age":12,"stage":"bloom","assurance":"minor","real_processing_allowed":false},
+    {"id":"demo-15","label":"DEMO voice","age":15,"stage":"aura","assurance":"minor","real_processing_allowed":false},
+    {"id":"demo-17","label":"DEMO pre-independence","age":17,"stage":"horizon","assurance":"minor","real_processing_allowed":false},
+    {"id":"demo-18","label":"DEMO independence","age":18,"stage":"horizon","assurance":"adult","real_processing_allowed":false},
+    {"id":"demo-23","label":"DEMO new career","age":23,"stage":"rise","assurance":"adult","real_processing_allowed":false},
+    {"id":"demo-33","label":"DEMO chosen goals","age":33,"stage":"momentum","assurance":"adult","real_processing_allowed":false},
+    {"id":"demo-44","label":"DEMO reinvention","age":44,"stage":"rooted","assurance":"adult","real_processing_allowed":false},
+    {"id":"demo-58","label":"DEMO new learning","age":58,"stage":"flourish","assurance":"adult","real_processing_allowed":false},
+    {"id":"demo-72","label":"DEMO creative chapter","age":72,"stage":"evergreen","assurance":"adult","real_processing_allowed":false}
+  ]
+}

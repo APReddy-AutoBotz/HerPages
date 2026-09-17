@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://schemas.herpages.invalid/v1/opportunity.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["id","title","organizer","source_url","application_url","category","countries","mode","eligibility","cost_status","deadline","timezone","status","verified_at","is_demo"],
+  "properties":{
+    "id":{"type":"string","format":"uuid"},"title":{"type":"string","minLength":1,"maxLength":180},"organizer":{"type":"string","minLength":1},
+    "source_url":{"type":"string","format":"uri"},"application_url":{"type":"string","format":"uri"},"category":{"enum":["learning","scholarship","career","event","volunteering","mentoring"]},
+    "countries":{"type":"array","items":{"type":"string","pattern":"^[A-Z]{2}$"},"minItems":1},"mode":{"enum":["remote","onsite","hybrid"]},
+    "eligibility":{"type":"object","additionalProperties":false,"required":["min_age","max_age","description"],"properties":{"min_age":{"type":["integer","null"],"minimum":0},"max_age":{"type":["integer","null"],"minimum":0},"description":{"type":"string"}}},
+    "cost_status":{"enum":["free","paid","unknown"]},"deadline":{"type":["string","null"],"format":"date-time"},"timezone":{"type":"string","minLength":1},
+    "status":{"enum":["draft","under_review","published","suspended","expired","archived"]},"verified_at":{"type":["string","null"],"format":"date-time"},"is_demo":{"type":"boolean"}
+  },
+  "$comment":"Publication rules additionally require appropriate verified evidence and reviewer authority. Unknown deadline/eligibility is never invented. Demo records may not be represented as real."
+}

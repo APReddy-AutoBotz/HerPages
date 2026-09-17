@@ -1,0 +1,44 @@
+name: HerPages CI
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: herpages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Setup Node 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install exact workspace dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Unit tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+      - name: Expo native configuration and dependency compatibility
+        working-directory: apps/mobile
+        run: |
+          npx expo install --check
+          npx expo config --json --full > /dev/null
+          npx expo-doctor
+      - name: Validate documentation and contracts
+        run: |
+          python3 scripts/validate_docs.py
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v

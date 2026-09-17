@@ -1,0 +1,24 @@
+{
+  "schemaVersion":"1.0",
+  "environment":"documentation_baseline",
+  "flags":{
+    "synthetic_demo":{"enabled":true,"gate":"G1","note":"Specification default; not an implemented app"},
+    "real_personal_vault":{"enabled":false,"gate":"G2"},
+    "cloud_vault_backup":{"enabled":false,"gate":"G2"},
+    "real_child_processing":{"enabled":false,"gate":"G3"},
+    "minor_participation":{"enabled":false,"gate":"G3"},
+    "published_catalog":{"enabled":false,"gate":"G4"},
+    "partner_applications":{"enabled":false,"gate":"G4"},
+    "adult_community":{"enabled":false,"gate":"G5"},
+    "mentor_programs":{"enabled":false,"gate":"G5"},
+    "cloud_ai_adult_selected":{"enabled":false,"gate":"G6"},
+    "cloud_ai_minor_personal":{"enabled":false,"gate":"not_supported_baseline"},
+    "adult_safety_sessions":{"enabled":false,"gate":"G7"},
+    "minor_live_location":{"enabled":false,"gate":"not_supported_baseline"},
+    "adult_minor_dm":{"enabled":false,"gate":"not_supported_baseline"},
+    "public_minor_profiles":{"enabled":false,"gate":"not_supported_baseline"},
+    "police_dispatch_integration":{"enabled":false,"gate":"not_supported_baseline"},
+    "subscriptions":{"enabled":false,"gate":"G4"}
+  },
+  "policy":"A flag is necessary but not sufficient. Server capability, consent, assurance, jurisdiction and gate evidence also apply. Unknown flags fail closed."
+}

@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://schemas.herpages.invalid/v1/vault-envelope.schema.json",
+  "title":"Proposed encrypted object envelope — crypto profile requires security review",
+  "type":"object","additionalProperties":false,
+  "required":["format_version","vault_id","object_id","key_epoch","crypto_profile","nonce_b64","aad_b64","ciphertext_b64","ciphertext_sha256"],
+  "properties":{
+    "format_version":{"const":"1.0-draft"},
+    "vault_id":{"type":"string","format":"uuid"},
+    "object_id":{"type":"string","format":"uuid"},
+    "key_epoch":{"type":"integer","minimum":1},
+    "crypto_profile":{"type":"string","enum":["REQUIRES_REVIEWED_NATIVE_PROFILE"]},
+    "nonce_b64":{"type":"string","contentEncoding":"base64","minLength":1},
+    "aad_b64":{"type":"string","contentEncoding":"base64","minLength":1},
+    "ciphertext_b64":{"type":"string","contentEncoding":"base64","minLength":1},
+    "ciphertext_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}
+  },
+  "$comment":"Serialization draft only. No accepted production crypto profile exists yet. Final profile defines AEAD algorithm, nonce length/uniqueness, tag representation, canonical AAD and limits. Never include raw keys or plaintext titles."
+}
