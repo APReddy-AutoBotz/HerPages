@@ -1,0 +1,28 @@
+{
+  "name": "@herpages/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@herpages/contracts": "workspace:*",
+    "@herpages/design-tokens": "workspace:*",
+    "@herpages/domain": "workspace:*",
+    "@herpages/policy": "workspace:*",
+    "fastify": "5.12.5",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "tsx": "~4.19.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  }
+}
