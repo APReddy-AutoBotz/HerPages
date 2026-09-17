@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 scripts/validate_docs.py
+      - run: python3 -m unittest discover -s scripts -p "test_*.py" -v
+
+  typecheck-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Test
+        run: pnpm test
+      - name: Build packages
+        run: |
+          pnpm --filter @herpages/contracts build
+          pnpm --filter @herpages/design-tokens build
+          pnpm --filter @herpages/domain build
+          pnpm --filter @herpages/policy build
+          pnpm --filter @herpages/vault-port build
+      - name: Build API
+        run: pnpm --filter @herpages/api build

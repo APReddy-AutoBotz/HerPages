@@ -1,0 +1,16 @@
+{
+  "name": "herpages",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.27.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --parallel run typecheck",
+    "test": "pnpm -r --parallel run test",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r --parallel run lint",
+    "clean": "pnpm -r --parallel run clean"
+  }
+}
