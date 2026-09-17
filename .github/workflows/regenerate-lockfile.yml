@@ -1,12 +1,12 @@
 name: Regenerate pnpm lockfile
 on:
   push:
-    branches: ['fix/hp-003-security-review-2']
+    branches:
+      - fix/hp-003-security-review-2
 permissions:
   contents: write
 jobs:
   regenerate:
-    if: ${{ github.event.head_commit.message != 'chore: regenerate pnpm 11 lockfile' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -20,7 +20,7 @@ jobs:
         run: corepack enable
       - name: Regenerate lockfile with pinned pnpm
         run: pnpm install --force --lockfile-only
-      - name: Commit regenerated lockfile
+      - name: Commit regenerated lockfile if changed
         run: |
           if git diff --quiet -- pnpm-lock.yaml; then
             echo 'Lockfile already compatible; nothing to commit.'
