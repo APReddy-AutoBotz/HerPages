@@ -1,13 +1,6 @@
 import type { SecureKeyStore } from "@herpages/vault-port";
 
-/**
- * TEST DOUBLE — not for production.
- *
- * In-memory keystore for Vitest tests where expo-secure-store
- * is not available. Clearly labeled; must never be enabled
- * silently in a production build.
- */
-
+/** TEST DOUBLE — not for production. */
 export class MemoryKeyStore implements SecureKeyStore {
   private entries = new Map<string, Uint8Array>();
   private available = true;
@@ -17,21 +10,26 @@ export class MemoryKeyStore implements SecureKeyStore {
   }
 
   async store(key: string, value: Uint8Array): Promise<void> {
-    if (!this.available) throw new Error("SecureStore unavailable (test double)");
+    this.requireAvailable();
     this.entries.set(key, new Uint8Array(value));
   }
 
   async retrieve(key: string): Promise<Uint8Array | null> {
-    if (!this.available) return null;
-    const v = this.entries.get(key);
-    return v ? new Uint8Array(v) : null;
+    this.requireAvailable();
+    const value = this.entries.get(key);
+    return value ? new Uint8Array(value) : null;
   }
 
   async delete(key: string): Promise<void> {
+    this.requireAvailable();
     this.entries.delete(key);
   }
 
   async isHardwareBacked(): Promise<boolean> {
     return false;
+  }
+
+  private requireAvailable(): void {
+    if (!this.available) throw new Error("SecureStore unavailable (test double)");
   }
 }

@@ -32,3 +32,12 @@ export {
   PolicyCaseExpectation,
   GoldenPolicyCase,
 } from "./policy-cases.js";
+
+export {
+  AssuranceLevel,
+  RelationshipState,
+  AdulthoodTransitionState,
+  CapabilityName,
+  PolicyDecision,
+  PolicySubject,
+} from "./capability.js";

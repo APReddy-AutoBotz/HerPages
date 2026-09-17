@@ -1,86 +1,79 @@
 import type { VaultDatabase } from "@herpages/vault-port";
 
-/**
- * expo-sqlite + SQLCipher adapter.
- *
- * Configuration:
- * - app.json includes the expo-sqlite config plugin with { "useSQLCipher": true }
- * - SQLCipher requires a native development build (prebuild); Expo Go is not valid.
- * - The database key is applied via PRAGMA key BEFORE any schema or data access.
- *
- * Fail-closed design:
- * - If SQLCipher is unavailable or PRAGMA key fails, the adapter does NOT
- *   open or create a plaintext fallback database. It throws and sets a blocked state.
- * - The caller must handle the blocked state by showing a blocked UI,
- *   never by falling back to AsyncStorage, localStorage, or plain SQLite.
- *
- * SQLCipher active verification (native test item):
- * - After applying PRAGMA key, verify encryption is active by:
- *   1. Checking PRAGMA cipher_version returns a non-empty result
- *   2. Attempting to open the DB file without the key (should fail)
- * - These verifications require a native build and are NOT run in Bolt.
- */
+interface SqliteDbLike {
+  execAsync(sql: string): Promise<unknown>;
+  getAllAsync<T = unknown>(sql: string, params?: unknown[]): Promise<T[]>;
+  runAsync?(sql: string, params?: unknown[]): Promise<unknown>;
+  closeAsync?(): Promise<void>;
+}
 
+interface SqliteModuleLike {
+  openDatabaseAsync(name: string): Promise<SqliteDbLike>;
+}
+
+type SqliteLoader = () => Promise<SqliteModuleLike>;
+
+const defaultLoader: SqliteLoader = async () => (await import("expo-sqlite")) as unknown as SqliteModuleLike;
+
+/** expo-sqlite + SQLCipher adapter. Native verification remains required. */
 export class SqlCipherAdapter implements VaultDatabase {
-  private db: unknown = null;
+  private db: SqliteDbLike | null = null;
   private openState: "closed" | "opening" | "open" | "blocked" = "closed";
   private keyApplied = false;
 
+  constructor(private readonly loadSqlite: SqliteLoader = defaultLoader) {}
+
   async open(dbKey: Uint8Array): Promise<void> {
-    if (this.openState === "open") throw new Error("Database already open");
+    if (dbKey.length !== 32) throw new SqlCipherUnavailableError("SQLCipher raw key must be exactly 32 bytes");
+    if (this.openState !== "closed") throw new SqlCipherUnavailableError(`Database cannot open from state ${this.openState}`);
     this.openState = "opening";
+    let opened: SqliteDbLike | null = null;
 
     try {
-      const mod = await import("expo-sqlite");
-      // expo-sqlite with SQLCipher: open the database, then apply PRAGMA key
-      // before any schema or data access.
-      const dbName = "herpages_vault.db";
-      this.db = await mod.openDatabaseAsync(dbName);
+      const mod = await this.loadSqlite();
+      opened = await mod.openDatabaseAsync("herpages_vault.db");
+      this.db = opened;
 
-      // Apply the SQLCipher key before any other operation.
-      // The key must be a hex string for PRAGMA key.
       const keyHex = bytesToHex(dbKey);
-      await this.execute(`PRAGMA key = '${keyHex}';`);
+      // SQLCipher raw-key syntax: use the exact 32 random bytes, bypassing passphrase KDF.
+      await this.rawExec(`PRAGMA key = "x'${keyHex}'";`);
 
-      // Verify SQLCipher is active (not merely configured).
-      // PRAGMA cipher_version should return a version string.
-      // This is a runtime check that SQLCipher is actually encrypting.
-      const cipherVersion = await this.query<{ cipher_version: string }>(
-        "PRAGMA cipher_version;"
-      );
-      if (!cipherVersion || cipherVersion.length === 0 || !cipherVersion[0].cipher_version) {
-        // SQLCipher not active — fail closed.
-        this.openState = "blocked";
-        await this.close();
-        throw new SqlCipherUnavailableError(
-          "SQLCipher is not active despite configuration. Refusing plaintext fallback."
-        );
+      const cipherVersion = await this.rawQuery<Record<string, unknown>>("PRAGMA cipher_version;");
+      const firstRow = cipherVersion[0] ?? {};
+      if (cipherVersion.length === 0 || !Object.values(firstRow).some((value) => typeof value === "string" && value.length > 0)) {
+        throw new SqlCipherUnavailableError("SQLCipher cipher_version is unavailable; refusing plaintext fallback");
       }
+
+      // PRAGMA key is lazy. Touch sqlite_master to prove an existing DB can actually be read with this key.
+      await this.rawQuery("SELECT count(*) AS count FROM sqlite_master;");
 
       this.keyApplied = true;
       this.openState = "open";
-    } catch (err) {
-      this.openState = "blocked";
+    } catch (error) {
+      try {
+        if (opened?.closeAsync) await opened.closeAsync();
+      } catch {
+        // Preserve the original failure and remain blocked.
+      }
       this.db = null;
       this.keyApplied = false;
-      if (err instanceof SqlCipherUnavailableError) throw err;
+      this.openState = "blocked";
+      if (error instanceof SqlCipherUnavailableError) throw error;
       throw new SqlCipherUnavailableError(
-        `Failed to open SQLCipher database: ${err instanceof Error ? err.message : String(err)}`
+        `Failed to initialize SQLCipher database: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
 
   async close(): Promise<void> {
-    if (this.db && typeof (this.db as any).closeAsync === "function") {
-      await (this.db as any).closeAsync();
-    }
+    if (this.db?.closeAsync) await this.db.closeAsync();
     this.db = null;
-    this.openState = "closed";
     this.keyApplied = false;
+    this.openState = "closed";
   }
 
   isOpen(): boolean {
-    return this.openState === "open" && this.keyApplied;
+    return this.openState === "open" && this.keyApplied && this.db !== null;
   }
 
   isBlocked(): boolean {
@@ -88,14 +81,32 @@ export class SqlCipherAdapter implements VaultDatabase {
   }
 
   async execute(sql: string, params?: unknown[]): Promise<void> {
-    if (!this.isOpen()) throw new Error("Database not open or key not applied");
-    await (this.db as any).execAsync(sql, params ?? []);
+    this.requireOpen();
+    if (params && params.length > 0) {
+      if (!this.db!.runAsync) throw new Error("Parameterized execution is unavailable");
+      await this.db!.runAsync(sql, params);
+      return;
+    }
+    await this.db!.execAsync(sql);
   }
 
   async query<T>(sql: string, params?: unknown[]): Promise<T[]> {
+    this.requireOpen();
+    return this.db!.getAllAsync<T>(sql, params);
+  }
+
+  private requireOpen(): void {
     if (!this.isOpen()) throw new Error("Database not open or key not applied");
-    const result = await (this.db as any).getAllAsync(sql, params ?? []);
-    return result as T[];
+  }
+
+  private async rawExec(sql: string): Promise<void> {
+    if (!this.db) throw new Error("Database handle unavailable during initialization");
+    await this.db.execAsync(sql);
+  }
+
+  private async rawQuery<T = unknown>(sql: string): Promise<T[]> {
+    if (!this.db) throw new Error("Database handle unavailable during initialization");
+    return this.db.getAllAsync<T>(sql);
   }
 }
 
@@ -107,7 +118,5 @@ export class SqlCipherUnavailableError extends Error {
 }
 
 function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
 }

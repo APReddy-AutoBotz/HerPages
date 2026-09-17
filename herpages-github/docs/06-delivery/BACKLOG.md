@@ -1,6 +1,6 @@
 # Implementation backlog
 
-All tasks are **not started** except HP-001 documentation authoring and HP-003 spike (portable tests implemented, native verification pending). Completion requires code and test evidence, not a checked box in a generated plan. FR requirements live in `../01-product/requirements.json`; TST cases in `test-cases.json`.
+**Progress:** HP-001 is complete. HP-002 is implemented and fresh-checkout CI verified. HP-003 has a corrected portable feasibility implementation with GitHub CI evidence; real Android/iOS verification and independent cryptographic review remain outstanding, so G2 is **NOT PASSED**. HP-004 is implemented as a portable lifecycle/capability engine with golden-policy tests; server enforcement and restricted-capability enablement remain gated. HP-005 onward are not started unless explicitly recorded otherwise. Completion requires code and test evidence, not a checked box in a generated plan. FR requirements live in `../01-product/requirements.json`; TST cases in `test-cases.json`.
 
 | Task | Scope and acceptance | Depends on | Requirements | Gate |
 |---|---|---|---|---|
@@ -38,6 +38,8 @@ Every implementation task records objective, non-goals, affected files, dependen
 ## Critical path
 
 HP-002 → HP-003 → HP-005/006 → HP-007/008 → HP-014/023 → gated beta. Design/catalog/research can proceed alongside the native security spike. AI/community/location are not prerequisites for the first useful product.
+
+**Current gate note:** HP-005 may be planned only against the reviewed HP-003 interfaces. Do not treat the absence of native HP-003 evidence as G2 approval or use real private data; native device verification remains a prerequisite for G2.
 
 ## Estimation policy
 
