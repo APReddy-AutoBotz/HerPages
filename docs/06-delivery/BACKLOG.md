@@ -1,6 +1,6 @@
 # Implementation backlog
 
-All tasks are **not started** except HP-001 documentation authoring. Completion requires code and test evidence, not a checked box in a generated plan. FR requirements live in `../01-product/requirements.json`; TST cases in `test-cases.json`.
+All tasks are **not started** except HP-001 documentation authoring and HP-003 spike (portable tests implemented, native verification pending). Completion requires code and test evidence, not a checked box in a generated plan. FR requirements live in `../01-product/requirements.json`; TST cases in `test-cases.json`.
 
 | Task | Scope and acceptance | Depends on | Requirements | Gate |
 |---|---|---|---|---|

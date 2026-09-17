@@ -49,3 +49,7 @@ All ADRs below are **proposed baseline decisions** pending implementation eviden
 ## ADR-012 — Build-tool independence
 
 **Decision:** standard repo, documented contracts, no hidden builder-only business rules. Bolt capacity is spent on coherent vertical slices and reusable design; Codex resumes using task IDs, tests and status. **Consequence:** feature breadth never substitutes for migration/native feasibility. **Revisit:** alternate tools must still satisfy clean-room setup and ownership requirements.
+
+## ADR-013 — HP-003 crypto profile (PROVISIONAL — independent review required)
+
+**Context:** HP-003 spike needed to prove the native encryption/key/recovery model is feasible on Expo SDK 57. **Decision:** AES-256-GCM via expo-crypto with 96-bit CSPRNG nonces; canonical AAD binding vault_id, object_id, key_epoch, format_version, purpose; high-entropy generated recovery secret (no KDF); expo-sqlite with SQLCipher (`useSQLCipher: true`, PRAGMA key before access); expo-secure-store for bootstrap/wrapping secret. No custom primitives. Fail-closed on unavailable secure storage — no plaintext fallback. **Alternatives:** react-native-keychain (not needed yet), PBKDF2/Argon2 KDF (not needed — recovery secret is high-entropy), web crypto substitute (not valid for native vault). **Consequences:** portable logic tested with 37 Vitest tests; native behavior NOT verified on device; G2 NOT passed. **Revisit:** after independent crypto/security review and native device tests pass. See `docs/03-architecture/HP-003_SPIKE_FINDINGS.md` for full details.

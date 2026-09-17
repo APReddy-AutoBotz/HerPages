@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | Product/lifecycle/design | Yes | No | No | No | No |
 | Portable workspace and skeleton (HP-002) | Yes | Yes — monorepo, packages, app shells | Yes — fresh GitHub CI passed install, typecheck, 23 tests, build, Expo check/doctor, docs tests | No | No |
-| Native encrypted vault/recovery | Yes, crypto profile gated | No — interfaces only (`vault-port`) | No | No | No |
+| Native encrypted vault/recovery | Yes, crypto profile gated | Implemented spike (HP-003) — portable tests pass; native verification pending | Yes — 37 vault-native tests pass (Bolt/Node); native device tests NOT RUN | No | No |
 | Cloud account/consent/backup | Yes | No | No | No | No |
 | Catalog/growth/partner workflows | Yes | No | No | No | No |
 | Community/mentorship | Gated future scope | No | No | No | No |
@@ -63,17 +63,38 @@ The independent documentation workflow also passed on the repaired branch.
 - Expo development build requiring native compilation
 - HP-003 native encryption/recovery behavior — not implemented
 
-### HP-003 functionality NOT implemented
+### HP-003 spike — implemented (portable tests only)
 
-- No encryption implementation
-- No SQLCipher database
-- No SecureStore key implementation
-- No key derivation/recovery implementation
-- `vault-port` remains interface/type definitions only
+**Task:** HP-003 — native encryption/key/recovery feasibility spike.  
+**Status:** Implemented spike + portable tests complete; native verification pending. G2 NOT passed.  
+**Baseline commit:** `9d71944b6951abb27a5892213f2010821ff1d91d`.
+
+The spike implements `packages/vault-native` with AES-256-GCM (expo-crypto), SQLCipher (expo-sqlite), SecureStore (expo-secure-store), high-entropy recovery secret, and versioned key rotation. 37 Vitest tests pass in Bolt (Node.js AEAD test double). Native device tests are NOT RUN — they require real Android/iOS builds.
+
+See `docs/03-architecture/HP-003_SPIKE_FINDINGS.md` and ADR-013 (PROVISIONAL).
+
+### HP-003 functionality implemented (portable only)
+
+- AES-256-GCM encrypt/decrypt with AAD binding (envelope, nonce, digest)
+- Fail-closed design: no plaintext fallback when secure storage unavailable
+- High-entropy recovery secret generation, recovery package encrypt/verify/restore
+- Account reset ≠ vault recovery separation proven (FR-009)
+- Versioned key rotation state machine with interruption recovery (FR-014)
+- Tamper/truncation/wrong-key/wrong-epoch rejection tests
+
+### HP-003 NOT verified (requires native device)
+
+- SQLCipher database encryption on device
+- SecureStore behavior on device
+- Clean-device recovery
+- Interrupted key rotation on device
+- Filesystem inspection for plaintext
+- expo-crypto AES-256-GCM on device
+- iOS vs Android key-storage differences
 
 ## Next implementation task
 
-**HP-003 — native encryption/key/recovery feasibility spike**, then HP-005 (offline Pages). Use synthetic fixtures. HP-003 must produce a go/no-go decision with real native evidence; a web preview or TypeScript-only adapter is not enough to pass G2.
+**HP-003 — native encryption/key/recovery feasibility spike**, then HP-005 (offline Pages). HP-003 spike implemented with 37 portable tests passing; native device verification and independent crypto review remain before G2. Use synthetic fixtures.
 
 Do not collect real private records before G2 or child data before G3.
 
