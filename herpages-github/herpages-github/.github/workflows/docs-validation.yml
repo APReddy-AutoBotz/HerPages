@@ -1,0 +1,24 @@
+name: Documentation validation
+on:
+  push:
+    branches: [main, 'docs/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: docs-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # verified v6 ref, pinned 2026-09-16
+        with:
+          persist-credentials: false
+      - name: Validate document and contract consistency
+        run: python3 scripts/validate_docs.py
+      - name: Test the validator itself
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v

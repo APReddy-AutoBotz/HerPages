@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://schemas.herpages.invalid/v1/events.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["event_id","event_type","schema_version","occurred_at","resource_ref","policy_version","idempotency_key"],
+  "properties":{
+    "event_id":{"type":"string","format":"uuid"},
+    "event_type":{"enum":["consent.withdrawn","relationship.suspended","device.revoked","snapshot.created","snapshot.finalized","snapshot.failed","catalog.review_due","opportunity.expired","deletion.requested","deletion.completed","organization.member_revoked","moderation.case_opened","entitlement.changed"]},
+    "schema_version":{"const":"1.0"},"occurred_at":{"type":"string","format":"date-time"},"resource_ref":{"type":"string","minLength":1},"policy_version":{"type":"string","minLength":1},"idempotency_key":{"type":"string","minLength":8,"maxLength":128}
+  },
+  "$comment":"Metadata-only baseline. No arbitrary payload, private text, keys, exact locations or identity evidence. Workers reauthorize referenced data before disclosure."
+}

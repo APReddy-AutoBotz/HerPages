@@ -1,0 +1,13 @@
+{
+  "status":"synthetic_contract_expectations_not_runtime_tests",
+  "cases":[
+    {"id":"POL-01","age":17,"theme":"horizon","assurance":"minor","capability":"adult_community","expected":"deny"},
+    {"id":"POL-02","age":18,"theme":"horizon","assurance":"adult","capability":"independent_adult_setup","expected":"eligible_subject_to_fresh_checks"},
+    {"id":"POL-03","age":18,"theme":"horizon","assurance":"unknown","capability":"adult_community","expected":"deny"},
+    {"id":"POL-04","age":72,"theme":"wonder","assurance":"adult","capability":"personal_vault","expected":"eligible_subject_to_gate"},
+    {"id":"POL-05","age":17,"theme":"momentum","assurance":"minor","capability":"adult_minor_dm","expected":"deny"},
+    {"id":"POL-06","age":null,"theme":"neutral","assurance":"unknown","capability":"minor_live_location","expected":"deny"},
+    {"id":"POL-07","age":44,"theme":"rooted","assurance":"adult","relationship":"revoked","capability":"child_history_access","expected":"deny"},
+    {"id":"POL-08","age":50,"theme":"flourish","assurance":"adult","payer":true,"capability":"beneficiary_private_vault","expected":"deny_without_specific_key_and_grant"}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://schemas.herpages.invalid/v1/consent-receipt.schema.json",
+  "type":"object","additionalProperties":false,
+  "required":["receipt_id","actor_id","subject_id","purpose","notice_version","policy_version","assurance_reference","granted_at","state"],
+  "properties":{
+    "receipt_id":{"type":"string","format":"uuid"},"actor_id":{"type":"string","format":"uuid"},"subject_id":{"type":"string","format":"uuid"},
+    "purpose":{"enum":["service_account","child_history","encrypted_backup","minor_participation","program_application","adult_community","adult_ai_selected","adult_safety_session"]},
+    "notice_version":{"type":"string","minLength":1},"policy_version":{"type":"string","minLength":1},"assurance_reference":{"type":"string","minLength":1},
+    "granted_at":{"type":"string","format":"date-time"},"withdrawn_at":{"type":["string","null"],"format":"date-time"},"state":{"enum":["active","withdrawn","superseded"]}
+  },
+  "$comment":"Receipt is evidence, not permission by itself. Server must validate actor-subject authority, purpose, assurance and release gates. Raw identity documents and secrets are excluded."
+}
