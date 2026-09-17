@@ -1,45 +1,43 @@
-name: CI
-
+name: HP-002 CI
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
   pull_request:
-    branches: [main]
-
+  workflow_dispatch:
 permissions:
   contents: read
-
+concurrency:
+  group: hp002-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  validate-docs:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          python-version: "3.12"
-      - run: python3 scripts/validate_docs.py
-      - run: python3 -m unittest discover -s scripts -p "test_*.py" -v
-
-  typecheck-test-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+          persist-credentials: false
+      - name: Setup Node 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
-          node-version: "24"
-      - uses: pnpm/action-setup@v4
-      - name: Install dependencies
+          node-version: '24'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install exact workspace dependencies
         run: pnpm install --frozen-lockfile
       - name: Typecheck
         run: pnpm typecheck
-      - name: Test
+      - name: Unit tests
         run: pnpm test
-      - name: Build packages
+      - name: Build
+        run: pnpm build
+      - name: Expo dependency compatibility
+        working-directory: apps/mobile
         run: |
-          pnpm --filter @herpages/contracts build
-          pnpm --filter @herpages/design-tokens build
-          pnpm --filter @herpages/domain build
-          pnpm --filter @herpages/policy build
-          pnpm --filter @herpages/vault-port build
-      - name: Build API
-        run: pnpm --filter @herpages/api build
+          npx expo install --check
+          npx expo-doctor
+      - name: Validate documentation and contracts
+        run: |
+          python3 scripts/validate_docs.py
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v
