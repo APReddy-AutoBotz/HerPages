@@ -1,4 +1,4 @@
-name: HP-002 CI
+name: HerPages CI
 on:
   push:
     branches: [main, 'feat/**', 'fix/**']
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: hp002-${{ github.workflow }}-${{ github.ref }}
+  group: herpages-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   verify:
@@ -32,10 +32,11 @@ jobs:
         run: pnpm test
       - name: Build
         run: pnpm build
-      - name: Expo dependency compatibility
+      - name: Expo native configuration and dependency compatibility
         working-directory: apps/mobile
         run: |
           npx expo install --check
+          npx expo config --json --full > /dev/null
           npx expo-doctor
       - name: Validate documentation and contracts
         run: |

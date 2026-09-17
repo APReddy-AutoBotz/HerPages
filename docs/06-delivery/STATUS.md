@@ -2,106 +2,80 @@
 
 **As of:** 2026-09-17. **Baseline:** 1.0. **Repository:** APReddy-AutoBotz/HerPages.
 
-| Area | Specified | Implemented application | App tests run | Specialist approved | Released |
+| Area | Specified | Implemented application | Verified evidence | Specialist approved | Released |
 |---|---|---|---|---|---|
-| Product/lifecycle/design | Yes | No | No | No | No |
-| Portable workspace and skeleton (HP-002) | Yes | Yes — monorepo, packages, app shells | Yes — fresh GitHub CI passed install, typecheck, 23 tests, build, Expo check/doctor, docs tests | No | No |
-| Native encrypted vault/recovery | Yes, crypto profile gated | Implemented spike (HP-003) — portable tests pass; native verification pending | Yes — 37 vault-native tests pass (Bolt/Node); native device tests NOT RUN | No | No |
+| Product/lifecycle/design | Yes | No | Documentation checks | No | No |
+| Portable workspace and skeleton (HP-002) | Yes | Yes — monorepo, packages, app shells | Fresh GitHub CI | No | No |
+| Native encrypted vault/recovery (HP-003) | Yes, crypto profile gated | **Portable spike implemented and corrective security review applied** | Frozen-install GitHub CI, 33 vault-native tests; native device tests NOT RUN | No | No |
 | Cloud account/consent/backup | Yes | No | No | No | No |
 | Catalog/growth/partner workflows | Yes | No | No | No | No |
 | Community/mentorship | Gated future scope | No | No | No | No |
 | Cloud AI | Gated future scope | No | No | No | No |
 | Live safety sessions | Gated future scope | No | No | No | No |
-| Documentation validator/CI | Yes | Repository tooling only | Passing | Not an app/security review | Not a product release |
 
-## HP-002 completion record
+## HP-002
 
-**Task:** HP-002 — portable workspace and native development skeleton.  
-**Status:** Implemented and repository-verified.  
-**Main repair merge:** `c703efead20e6430d62ad78d888d5c24da6e1cfa`.
+**Status:** implemented and repository-verified. The accidental `/project/` nesting was repaired by PR #3 without rewriting history. Fresh GitHub CI passed frozen install, typecheck, 23 executable unit tests, build, Expo compatibility/doctor, and documentation validation.
 
-The Bolt workspace was manually transferred once and the full repository tree was accidentally committed under `/project/`. Pull request #3 flattened the HP-002 content back to repository root, restored `.gitignore`, removed the stale npm lockfile and transfer-only patch/bundle artifacts, and added fresh-checkout CI. The repository history was preserved rather than rewritten.
+Selected foundation: Node 24 in CI, pnpm 11.27.0, Expo SDK 57-compatible React Native 0.86.3 / React 19.2.3, Next.js 16.3.5, Fastify 5.12.5, Vitest 5.0.1 and Zod 4.6.5.
 
-### Selected versions
+## HP-003 — encryption/key/recovery feasibility spike
 
-| Package | Version | Notes |
-|---|---|---|
-| Node.js | >=22; CI uses 24 | `.nvmrc` specifies 24 |
-| pnpm | 11.27.0 | authoritative package manager / lockfile |
-| Expo SDK | ~57.0.19 | lockfile may resolve compatible patch |
-| React | 19.2.3 | mobile/Expo |
-| React Native | 0.86.3 | Expo SDK 57-compatible line |
-| expo-router | ~57.0.21 | |
-| react-native-web | ~0.21.2 | |
-| TypeScript (mobile) | ~6.0.3 | Expo/mobile compatibility |
-| TypeScript (packages/web/api) | 7.0.2 | |
-| Next.js | 16.3.5 | web shell only |
-| React (web) | 19.3.0 | independent web workspace |
-| Fastify | 5.12.5 | API skeleton |
-| Vitest | 5.0.1 | |
-| Zod | 4.6.5 | |
+**Requirements:** FR-008, FR-009, FR-014.  
+**Status:** portable implementation corrected and GitHub-CI verified; **native verification pending; G2 NOT PASSED**.
 
-### Fresh GitHub verification
+`packages/vault-port` remains platform-independent. `packages/vault-native` contains the provisional native adapters and portable state/crypto logic. The mobile workspace now explicitly depends on `@herpages/vault-native`, `expo-crypto`, `expo-secure-store`, and `expo-sqlite`; Expo config resolves the SQLCipher plugin successfully in CI.
 
-GitHub Actions run `35193053150` checked out the repaired branch from GitHub and passed:
+### Corrective security review
 
-- `pnpm install --frozen-lockfile`
-- `pnpm typecheck`
-- `pnpm test` — 23 tests
-- `pnpm build`
+A direct review of the HP-003 code found blockers that the original Bolt test headline did not reveal. These were corrected on `fix/hp-003-security-review-2` and are documented in `docs/03-architecture/HP-003_SECURITY_REVIEW.md`:
+
+- SQLCipher initialization originally called guarded public database methods before the key/open state existed; initialization now uses a private pre-open path, requires a 32-byte raw key, checks `cipher_version`, and touches `sqlite_master` before declaring the DB open.
+- The recovery package originally embedded the same high-entropy secret needed to decrypt it; the package now contains only the encrypted envelope and the recovery secret remains user-held.
+- Failed key rotation originally discarded the pending key and generated a new one on resume; failure/resume now retains the exact pending epoch key and progress.
+- Secure-store unavailability is now distinguished from a legitimately missing item and fails closed.
+- Test doubles are no longer exported from the production package root.
+- UUID/hex/key/nonce validation is stricter before cryptographic use.
+- Accidental `hp-003-transfer/` and ZIP artifacts were removed and future transfer artifacts are ignored.
+- The pnpm lockfile was regenerated with the repository-pinned pnpm 11.27.0 after Bolt supplied an incompatible lockfile format.
+
+### Current automated evidence
+
+Latest reviewed branch CI uses a clean GitHub checkout and `pnpm install --frozen-lockfile`. It passes:
+
+- dependency installation with pnpm 11.27.0
+- TypeScript checks across all workspace projects
+- `pnpm test`: **33 vault-native tests** plus 23 existing executable TypeScript tests (**56 total**)
+- production build
 - `npx expo install --check`
+- explicit `npx expo config --json --full`
 - `npx expo-doctor`
-- `python3 scripts/validate_docs.py`
-- `python3 -m unittest discover -s scripts -p "test_*.py" -v`
+- documentation/contract validator and 10 validator regression tests
 
-The independent documentation workflow also passed on the repaired branch.
+The portable tests cover AES-GCM authentication/tamper cases, recovery separation, logical key-rotation failure/resume, and injected SQLCipher initialization/fail-closed sequencing. They do **not** substitute for native evidence.
 
-### Still not verified
+### Still NOT verified — required before G2
 
-- Native iOS build (`expo run:ios`) — requires appropriate macOS/Xcode environment
-- Native Android build (`expo run:android`) — requires Android SDK/emulator/device
-- Expo development build requiring native compilation
-- HP-003 native encryption/recovery behavior — not implemented
+- native Android/iOS development/release builds
+- actual SQLCipher encryption and wrong-key behavior on device
+- raw DB/WAL/temp/cache inspection for plaintext
+- actual Expo SecureStore behavior, including platform uninstall/reinstall and any authentication/biometric behavior adopted later
+- native Expo Crypto known-answer parity
+- clean-device recovery on a second installation/device
+- process-death persistence and recovery during key rotation
+- iOS versus Android key-storage differences
+- independent professional cryptographic/security review
 
-### HP-003 spike — implemented (portable tests only)
+No real private records or child data may be used on the basis of this spike. G2 remains **NOT PASSED**.
 
-**Task:** HP-003 — native encryption/key/recovery feasibility spike.  
-**Status:** Implemented spike + portable tests complete; native verification pending. G2 NOT passed.  
-**Baseline commit:** `9d71944b6951abb27a5892213f2010821ff1d91d`.
+## Next implementation work
 
-The spike implements `packages/vault-native` with AES-256-GCM (expo-crypto), SQLCipher (expo-sqlite), SecureStore (expo-secure-store), high-entropy recovery secret, and versioned key rotation. 37 Vitest tests pass in Bolt (Node.js AEAD test double). Native device tests are NOT RUN — they require real Android/iOS builds.
-
-See `docs/03-architecture/HP-003_SPIKE_FINDINGS.md` and ADR-013 (PROVISIONAL).
-
-### HP-003 functionality implemented (portable only)
-
-- AES-256-GCM encrypt/decrypt with AAD binding (envelope, nonce, digest)
-- Fail-closed design: no plaintext fallback when secure storage unavailable
-- High-entropy recovery secret generation, recovery package encrypt/verify/restore
-- Account reset ≠ vault recovery separation proven (FR-009)
-- Versioned key rotation state machine with interruption recovery (FR-014)
-- Tamper/truncation/wrong-key/wrong-epoch rejection tests
-
-### HP-003 NOT verified (requires native device)
-
-- SQLCipher database encryption on device
-- SecureStore behavior on device
-- Clean-device recovery
-- Interrupted key rotation on device
-- Filesystem inspection for plaintext
-- expo-crypto AES-256-GCM on device
-- iOS vs Android key-storage differences
-
-## Next implementation task
-
-**HP-003 — native encryption/key/recovery feasibility spike**, then HP-005 (offline Pages). HP-003 spike implemented with 37 portable tests passing; native device verification and independent crypto review remain before G2. Use synthetic fixtures.
-
-Do not collect real private records before G2 or child data before G3.
+HP-004 can proceed independently from HP-002. HP-005 depends on HP-003; planning and synthetic-only implementation may proceed against the reviewed interfaces only if it does not imply G2 approval. Real private-data use remains blocked until native HP-003 evidence and the required independent review are complete.
 
 ## Important unresolved decisions
 
-Reviewed native crypto/recovery profile; legal entity/trademark/license; guardian assurance/consent implementation; processor contracts/regions; private reporting/support contacts; trained moderation; store audience strategy; paid-market validation. See the decision register and release gates.
+Native crypto/recovery profile approval; legal entity/trademark/license; guardian assurance/consent implementation; processor contracts/regions; private reporting/support contacts; trained moderation; store audience strategy; paid-market validation. See the decision register and release gates.
 
-## Verification state
+## Interpretation
 
-HP-002 is implemented and fresh-checkout repository checks pass. This does **not** mean the native security model, legal/safeguarding requirements, customer demand or production release is approved. Acceptance cases for later tasks remain specifications until executed against their implementations.
+`implemented`, `portable-tested`, `native-tested`, `specialist-reviewed`, and `released` are separate states. HP-003 is currently in the first two states only.

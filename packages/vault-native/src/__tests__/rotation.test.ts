@@ -10,103 +10,67 @@ describe("KeyRotationStateMachine — FR-014", () => {
 
   beforeEach(async () => {
     provider = new NodeAeadProvider();
-    initialEpoch = {
-      epoch: 1,
-      rootKey: await provider.randomBytes(KEY_LENGTH),
-      createdAt: Date.now(),
-    };
+    initialEpoch = { epoch: 1, rootKey: await provider.randomBytes(KEY_LENGTH), createdAt: Date.now() };
   });
 
-  it("begins rotation and creates a new epoch", async () => {
-    const sm = new KeyRotationStateMachine(provider, initialEpoch);
-    await sm.beginRotation(10);
-
-    const status = sm.getStatus();
-    expect(status.state).toBe("rotating");
-    expect(status.currentEpoch).toBe(1);
-    expect(status.pendingEpoch).toBe(2);
-    expect(status.totalCount).toBe(10);
-  });
-
-  it("finalizes rotation after all objects re-encrypted", async () => {
-    const sm = new KeyRotationStateMachine(provider, initialEpoch);
-    await sm.beginRotation(3);
-
-    sm.markReencrypted();
-    sm.markReencrypted();
-    sm.markReencrypted();
-
-    sm.finalize();
-
-    const status = sm.getStatus();
-    expect(status.state).toBe("done");
-    expect(status.currentEpoch).toBe(2);
-    expect(status.pendingEpoch).toBeNull();
-  });
-
-  it("refuses to finalize before all objects are re-encrypted", async () => {
+  it("retains the same pending key and progress across logical failure/resume", async () => {
     const sm = new KeyRotationStateMachine(provider, initialEpoch);
     await sm.beginRotation(5);
-
-    sm.markReencrypted();
-    sm.markReencrypted();
-
-    expect(() => sm.finalize()).toThrow("Cannot finalize");
-  });
-
-  it("recovers from interrupted rotation — previous epoch key intact", async () => {
-    const sm = new KeyRotationStateMachine(provider, initialEpoch);
-    await sm.beginRotation(10);
-    sm.markReencrypted();
-    sm.markReencrypted();
-
-    // Simulate crash/interruption
-    sm.fail();
-
-    const status = sm.getStatus();
-    expect(status.state).toBe("failed");
-    expect(status.currentEpoch).toBe(1);
-    expect(status.previousEpochKey).not.toBeNull();
-  });
-
-  it("resumes rotation after failure", async () => {
-    const sm = new KeyRotationStateMachine(provider, initialEpoch);
-    await sm.beginRotation(5);
+    const pendingBefore = sm.getPendingEpochForMigration()!;
     sm.markReencrypted();
     sm.markReencrypted();
     sm.fail();
-
+    expect(sm.getStatus()).toMatchObject({ state: "failed", currentEpoch: 1, pendingEpoch: 2, reencryptedCount: 2, totalCount: 5 });
     await sm.resume();
-
-    const status = sm.getStatus();
-    expect(status.state).toBe("rotating");
-    expect(status.pendingEpoch).toBe(2);
+    const pendingAfter = sm.getPendingEpochForMigration()!;
+    expect(Array.from(pendingAfter.rootKey)).toEqual(Array.from(pendingBefore.rootKey));
+    expect(sm.getStatus().reencryptedCount).toBe(2);
   });
 
-  it("old key cannot decrypt new-epoch data", () => {
+  it("finalizes only after every object is re-encrypted", async () => {
     const sm = new KeyRotationStateMachine(provider, initialEpoch);
-    expect(sm.canOldKeyDecryptNewEpoch()).toBe(false);
-  });
-
-  it("refuses double rotation", async () => {
-    const sm = new KeyRotationStateMachine(provider, initialEpoch);
-    await sm.beginRotation(3);
-
-    await expect(sm.beginRotation(3)).rejects.toThrow("already in progress");
-  });
-
-  it("reset returns to idle state", async () => {
-    const sm = new KeyRotationStateMachine(provider, initialEpoch);
-    await sm.beginRotation(3);
+    await sm.beginRotation(2);
     sm.markReencrypted();
-    sm.markReencrypted();
+    expect(() => sm.finalize()).toThrow("Cannot finalize");
     sm.markReencrypted();
     sm.finalize();
-    sm.reset();
+    expect(sm.getStatus()).toMatchObject({ state: "done", currentEpoch: 2, pendingEpoch: null });
+  });
 
-    const status = sm.getStatus();
-    expect(status.state).toBe("idle");
-    expect(status.pendingEpoch).toBeNull();
-    expect(status.reencryptedCount).toBe(0);
+  it("actually proves an old key cannot decrypt data encrypted with the pending key", async () => {
+    const sm = new KeyRotationStateMachine(provider, initialEpoch);
+    const oldKey = sm.getCurrentEpoch().rootKey;
+    await sm.beginRotation(1);
+    const newKey = sm.getPendingEpochForMigration()!.rootKey;
+    const nonce = await provider.randomBytes(12);
+    const aad = new TextEncoder().encode("rotation-proof");
+    const plaintext = new TextEncoder().encode("synthetic new epoch data");
+    const sealed = await provider.encrypt(newKey, plaintext, aad, nonce);
+    await expect(provider.decrypt(oldKey, sealed.ciphertext, sealed.nonce, aad, sealed.tag)).rejects.toThrow();
+  });
+
+  it("does not expose raw keys in status", async () => {
+    const sm = new KeyRotationStateMachine(provider, initialEpoch);
+    await sm.beginRotation(1);
+    const status = sm.getStatus() as unknown as Record<string, unknown>;
+    expect(status.previousEpochKey).toBeUndefined();
+    expect(JSON.stringify(status)).not.toContain(Buffer.from(initialEpoch.rootKey).toString("hex"));
+  });
+
+  it("refuses extra completion marks and active reset", async () => {
+    const sm = new KeyRotationStateMachine(provider, initialEpoch);
+    await sm.beginRotation(1);
+    expect(() => sm.reset()).toThrow("active rotation");
+    sm.markReencrypted();
+    expect(() => sm.markReencrypted()).toThrow("exceeds");
+  });
+
+  it("reset clears failed pending state without changing the active old epoch", async () => {
+    const sm = new KeyRotationStateMachine(provider, initialEpoch);
+    await sm.beginRotation(3);
+    sm.markReencrypted();
+    sm.fail();
+    sm.reset();
+    expect(sm.getStatus()).toMatchObject({ state: "idle", currentEpoch: 1, pendingEpoch: null, reencryptedCount: 0 });
   });
 });
