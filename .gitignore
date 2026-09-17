@@ -28,3 +28,5 @@ user-data/
 identity-evidence/
 recovery-material/
 artifacts/
+/hp-*-transfer/
+/hp-*-transfer.zip
